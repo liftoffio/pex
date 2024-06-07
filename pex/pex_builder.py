@@ -127,7 +127,7 @@ __INSTALLED_FROM__ = '__PEX_EXE__'
 
 
 def __re_exec__(argv0, *extra_launch_args):
-    os.execv(argv0, [argv0] + list(extra_launch_args) + sys.argv[1:])
+    os.execv(argv0, [argv0, "-u"] + list(extra_launch_args) + sys.argv[1:])
 
 
 __execute__ = __name__ == "__main__"
