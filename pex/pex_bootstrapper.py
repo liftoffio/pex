@@ -463,7 +463,7 @@ class VenvPex(object):
 
     def execute_args(self, *additional_args):
         # type: (*str) -> List[str]
-        argv = [self.python]
+        argv = [self.python, "-u"]
         if self.hermetic_scripts:
             argv.append("-sE")
         argv.append(self.pex)

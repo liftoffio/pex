@@ -634,7 +634,7 @@ def _populate_first_party(
             ):
                 sys.stderr.write("Re-execing from {{}}\\n".format(sys.executable))
                 os.environ[current_interpreter_blessed_env_var] = "1"
-                argv = [python]
+                argv = [python, "-u"]
                 if {hermetic_re_exec!r}:
                     argv.append("-sE")
                 argv.extend(sys.argv)
