@@ -269,6 +269,26 @@ class PexInfo(object):
         # type: (bool) -> None
         self._pex_info["venv_hermetic_scripts"] = value
 
+    @property
+    def dynamic_requirements(self):
+        # type: () -> bool
+        return self._pex_info.get("dynamic_requirements", False)
+
+    @dynamic_requirements.setter
+    def dynamic_requirements(self, value):
+        # type: (bool) -> None
+        self._pex_info["dynamic_requirements"] = value
+
+    @property
+    def uv_version(self):
+        # type: () -> Optional[str]
+        return self._pex_info.get("uv_version")
+
+    @uv_version.setter
+    def uv_version(self, value):
+        # type: (str) -> None
+        self._pex_info["uv_version"] = value
+
     def _venv_dir(
         self,
         pex_root,  # type: str

@@ -5,7 +5,9 @@ from __future__ import absolute_import
 
 import hashlib
 import os
+import subprocess
 import sys
+from pathlib import Path
 
 from pex import pex_warnings
 from pex.atomic_directory import atomic_directory
@@ -25,6 +27,7 @@ from pex.tracer import TRACER
 from pex.typing import TYPE_CHECKING, cast
 from pex.variables import ENV
 from pex.venv import installer
+from pex.venv.virtualenv import InstallationChoice
 
 if TYPE_CHECKING:
     from typing import (
@@ -526,6 +529,8 @@ def ensure_venv(
                 interpreter=pex.interpreter,
                 copies=pex_info.venv_copies,
                 system_site_packages=pex_info.venv_system_site_packages,
+                install_pip=InstallationChoice.YES,
+                install_setuptools=InstallationChoice.YES,
                 prompt=os.path.basename(ENV.PEX) if ENV.PEX else None,
             )
 
@@ -573,16 +578,18 @@ def ensure_venv(
                         else CopyMode.LINK
                     )
 
+                    python_bin = (
+                        Path(short_venv_dir)
+                        / "venv"
+                        / "bin"
+                        / Path(virtualenv.interpreter.binary).name
+                    )
+                    pex_root = Path(pex_info.pex_root)
                     shebang = installer.populate_venv_from_pex(
                         virtualenv,
                         pex,
                         bin_path=pex_info.venv_bin_path,
-                        python=os.path.join(
-                            short_venv_dir,
-                            "venv",
-                            "bin",
-                            os.path.basename(virtualenv.interpreter.binary),
-                        ),
+                        python=str(python_bin),
                         collisions_ok=collisions_ok,
                         copy_mode=copy_mode,
                         hermetic_scripts=pex_info.venv_hermetic_scripts,
@@ -607,6 +614,28 @@ def ensure_venv(
                         )
 
                     break
+
+    pex_root = Path(pex.path())
+    venv_bin = Path(venv_dir) / "bin"
+    if pex_info.dynamic_requirements:
+        subprocess.run(
+            [venv_bin / "pip", "install", f"uv=={pex_info.uv_version}"],
+            check=True,
+        )
+        subprocess.run(
+            [
+                venv_bin / "uv",
+                "pip",
+                "install",
+                "-p",
+                venv_bin / "python",
+                "-r",
+                pex_root / "requirements.txt",
+                "-c",
+                pex_root / "constraints.txt",
+            ],
+            check=True,
+        )
 
     return VenvPex(venv_dir, hermetic_scripts=pex_info.venv_hermetic_scripts)
 
