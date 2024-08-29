@@ -618,8 +618,19 @@ def ensure_venv(
     pex_root = Path(pex.path())
     venv_bin = Path(venv_dir) / "bin"
     if pex_info.lazy_requirements:
+        pypi_args = []
+        if pex_info.pypi_indices:
+            pypi_args += ["-i", pex_info.pypi_indices[0]]
+            for index in pex_info.pypi_indices[1:]:
+                pypi_args += ["--extra-index-url", index]
+
         subprocess.run(
-            [venv_bin / "pip", "install", f"uv=={pex_info.uv_version}"],
+            [
+                venv_bin / "pip",
+                "install",
+                f"uv=={pex_info.uv_version}",
+                *pypi_args
+            ],
             check=True,
         )
         subprocess.run(
@@ -633,6 +644,7 @@ def ensure_venv(
                 pex_root / "requirements.txt",
                 "-c",
                 pex_root / "constraints.txt",
+                *pypi_args
             ],
             check=True,
         )

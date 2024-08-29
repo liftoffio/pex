@@ -289,6 +289,16 @@ class PexInfo(object):
         # type: (str) -> None
         self._pex_info["uv_version"] = value
 
+    @property
+    def pypi_indices(self):
+        # type: () -> Tuple[str, ...]
+        return tuple(self._pex_info.get("pypi_indices", ()))
+
+    @pypi_indices.setter
+    def pypi_indices(self, value):
+        # type: (Iterable[str]) -> None
+        self._pex_info["pypi_indices"] = tuple(value)
+
     def _venv_dir(
         self,
         pex_root,  # type: str
