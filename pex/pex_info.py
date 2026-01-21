@@ -20,8 +20,17 @@ from pex.version import __version__ as pex_version
 
 if TYPE_CHECKING:
     # MyPy run for 2.7 does not recognize the Collection type
-    from typing import Collection  # type: ignore[attr-defined]
-    from typing import Any, Dict, Iterable, Mapping, Optional, Text, Tuple, Union
+    from typing import (
+        Any,
+        Collection,  # type: ignore[attr-defined]
+        Dict,
+        Iterable,
+        Mapping,
+        Optional,
+        Text,
+        Tuple,
+        Union,
+    )
 
     from pex.dist_metadata import Requirement
 
@@ -135,7 +144,8 @@ class PexInfo(object):
 
         if info is not None and not isinstance(info, dict):
             raise ValueError(
-                "PexInfo can only be seeded with a dict, got: " "%s of type %s" % (info, type(info))
+                "PexInfo can only be seeded with a dict, got: "
+                "%s of type %s" % (info, type(info))
             )
         self._pex_info = dict(info) if info else {}  # type: Dict[str, Any]
         self._distributions = self._pex_info.get("distributions", {})  # type: Dict[str, str]
@@ -146,8 +156,12 @@ class PexInfo(object):
 
         requirements = self._pex_info.get("requirements", [])
         if not isinstance(requirements, (list, tuple)):
-            raise ValueError("Expected requirements to be a list, got %s" % type(requirements))
-        self._requirements = OrderedSet(self._parse_requirement_tuple(req) for req in requirements)
+            raise ValueError(
+                "Expected requirements to be a list, got %s" % type(requirements)
+            )
+        self._requirements = OrderedSet(
+            self._parse_requirement_tuple(req) for req in requirements
+        )
 
         self._excluded = OrderedSet(self._pex_info.get("excluded", ()))  # type: OrderedSet[str]
         self._overridden = OrderedSet(self._pex_info.get("overridden", ()))  # type: OrderedSet[str]
@@ -222,7 +236,9 @@ class PexInfo(object):
     def venv_bin_path(self):
         # type: () -> BinPath.Value
         """When run as a venv, whether or not to include `bin/` scripts on the PATH."""
-        return BinPath.for_value(self._pex_info.get("venv_bin_path", BinPath.FALSE.value))
+        return BinPath.for_value(
+            self._pex_info.get("venv_bin_path", BinPath.FALSE.value)
+        )
 
     @venv_bin_path.setter
     def venv_bin_path(self, value):
@@ -280,16 +296,6 @@ class PexInfo(object):
         self._pex_info["lazy_requirements"] = value
 
     @property
-    def uv_version(self):
-        # type: () -> Optional[str]
-        return self._pex_info.get("uv_version")
-
-    @uv_version.setter
-    def uv_version(self, value):
-        # type: (str) -> None
-        self._pex_info["uv_version"] = value
-
-    @property
     def pypi_indices(self):
         # type: () -> Tuple[str, ...]
         return tuple(self._pex_info.get("pypi_indices", ()))
@@ -339,7 +345,9 @@ class PexInfo(object):
         We don't expand the pex_root at build time in case the pex_root is not
         writable or doesn't exist at build time.
         """
-        return self._venv_dir(self.raw_pex_root, pex_file, interpreter, expand_pex_root=False)
+        return self._venv_dir(
+            self.raw_pex_root, pex_file, interpreter, expand_pex_root=False
+        )
 
     @property
     def includes_tools(self):
@@ -404,7 +412,9 @@ class PexInfo(object):
         environment variable.
         """
         inherit_path = self._pex_info.get("inherit_path")
-        return InheritPath.for_value(inherit_path) if inherit_path else InheritPath.FALSE
+        return (
+            InheritPath.for_value(inherit_path) if inherit_path else InheritPath.FALSE
+        )
 
     @inherit_path.setter
     def inherit_path(self, value):
@@ -533,7 +543,9 @@ class PexInfo(object):
     @property
     def raw_pex_root(self):
         # type: () -> str
-        return cast(str, self._pex_info.get("pex_root", cache.cache_path(expand_user=False)))
+        return cast(
+            str, self._pex_info.get("pex_root", cache.cache_path(expand_user=False))
+        )
 
     @property
     def pex_root(self):
@@ -639,13 +651,17 @@ class PexInfo(object):
         data["requirements"] = sorted(self._requirements)
         data["excluded"] = sorted(self._excluded)
         data["overridden"] = sorted(self._overridden)
-        data["interpreter_constraints"] = sorted(str(ic) for ic in self.interpreter_constraints)
+        data["interpreter_constraints"] = sorted(
+            str(ic) for ic in self.interpreter_constraints
+        )
         data["distributions"] = self._distributions.copy()
         return data
 
     def dump(self, **extra_json_dumps_kwargs):
         # type: (**Any) -> str
-        return json.dumps(self.as_json_dict(), sort_keys=True, **extra_json_dumps_kwargs)
+        return json.dumps(
+            self.as_json_dict(), sort_keys=True, **extra_json_dumps_kwargs
+        )
 
     def copy(self):
         # type: () -> PexInfo

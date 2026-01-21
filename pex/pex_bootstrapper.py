@@ -27,7 +27,6 @@ from pex.tracer import TRACER
 from pex.typing import TYPE_CHECKING, cast
 from pex.variables import ENV
 from pex.venv import installer
-from pex.venv.virtualenv import InstallationChoice
 
 if TYPE_CHECKING:
     from typing import (
@@ -45,7 +44,11 @@ if TYPE_CHECKING:
 
     import attr  # vendor:skip
 
-    from pex.interpreter import InterpreterIdentificationError, InterpreterOrError, PathFilter
+    from pex.interpreter import (
+        InterpreterIdentificationError,
+        InterpreterOrError,
+        PathFilter,
+    )
     from pex.pex import PEX
 else:
     from pex.third_party import attr
@@ -54,7 +57,11 @@ else:
 def normalize_path(path):
     # type: (Optional[Iterable[str]]) -> Optional[OrderedSet[str]]
     """Normalizes a PATH list into a de-duped list of paths."""
-    return OrderedSet(PythonInterpreter.canonicalize_path(p) for p in path) if path else None
+    return (
+        OrderedSet(PythonInterpreter.canonicalize_path(p) for p in path)
+        if path
+        else None
+    )
 
 
 @attr.s(frozen=True)
@@ -124,7 +131,8 @@ def iter_compatible_interpreters(
     if valid_basenames:
         _valid_basenames = frozenset(cast("Iterable[str]", valid_basenames))
         _valid_path = (
-            lambda interpreter_path: os.path.basename(interpreter_path) in _valid_basenames
+            lambda interpreter_path: os.path.basename(interpreter_path)
+            in _valid_basenames
         )
 
     def _iter_interpreters():
@@ -138,7 +146,10 @@ def iter_compatible_interpreters(
         if not _valid_path or _valid_path(current_interpreter.binary):
             if normalized_paths:
                 candidate_paths = frozenset(
-                    (current_interpreter.binary, os.path.dirname(current_interpreter.binary))
+                    (
+                        current_interpreter.binary,
+                        os.path.dirname(current_interpreter.binary),
+                    )
                 )
                 candidate_paths_in_path = candidate_paths.intersection(normalized_paths)
                 if candidate_paths_in_path:
@@ -200,10 +211,14 @@ def iter_compatible_interpreters(
         else:
             if interpreter_constraints:
                 constraints.append(
-                    "Version matches {}".format(" or ".join(map(str, interpreter_constraints)))
+                    "Version matches {}".format(
+                        " or ".join(map(str, interpreter_constraints))
+                    )
                 )
             if valid_basenames:
-                constraints.append("Basename is {}".format(" or ".join(valid_basenames)))
+                constraints.append(
+                    "Basename is {}".format(" or ".join(valid_basenames))
+                )
         raise UnsatisfiableInterpreterConstraintsError(
             constraints, candidates, identification_failures
         )
@@ -242,13 +257,17 @@ def _select_path_interpreter(
         return current_interpreter
     # TODO: Allow the selection strategy to be parameterized:
     #   https://github.com/pex-tool/pex/issues/430
-    return PythonInterpreter.latest_release_of_min_compatible_version(candidate_interpreters)
+    return PythonInterpreter.latest_release_of_min_compatible_version(
+        candidate_interpreters
+    )
 
 
 def find_compatible_interpreter(interpreter_test=None):
     # type: (Optional[InterpreterTest]) -> PythonInterpreter
 
-    interpreter_constraints = interpreter_test.interpreter_constraints if interpreter_test else None
+    interpreter_constraints = (
+        interpreter_test.interpreter_constraints if interpreter_test else None
+    )
 
     def gather_constraints():
         # type: () -> Iterable[str]
@@ -334,7 +353,9 @@ def find_compatible_interpreter(interpreter_test=None):
                 )
 
         if preferred_interpreter and target != preferred_interpreter:
-            candidates = [preferred_interpreter, target] if target else [preferred_interpreter]
+            candidates = (
+                [preferred_interpreter, target] if target else [preferred_interpreter]
+            )
             raise UnsatisfiableInterpreterConstraintsError(
                 constraints=gather_constraints(),
                 candidates=candidates,
@@ -500,7 +521,8 @@ class VenvPex(object):
     ):
         # type: (...) -> NoReturn
         os.execv(
-            self.python, self.execute_args(python_args=python_args, additional_args=additional_args)
+            self.python,
+            self.execute_args(python_args=python_args, additional_args=additional_args),
         )
 
 
@@ -510,10 +532,14 @@ def ensure_venv(
 ):
     # type: (...) -> VenvPex
     pex_info = pex.pex_info()
-    venv_dir = pex_info.runtime_venv_dir(pex_file=pex.path(), interpreter=pex.interpreter)
+    venv_dir = pex_info.runtime_venv_dir(
+        pex_file=pex.path(), interpreter=pex.interpreter
+    )
     if venv_dir is None:
         raise AssertionError(
-            "Expected PEX-INFO for {} to have the components of a venv directory".format(pex.path())
+            "Expected PEX-INFO for {} to have the components of a venv directory".format(
+                pex.path()
+            )
         )
     if not pex_info.includes_tools:
         raise ValueError(
@@ -529,8 +555,6 @@ def ensure_venv(
                 interpreter=pex.interpreter,
                 copies=pex_info.venv_copies,
                 system_site_packages=pex_info.venv_system_site_packages,
-                install_pip=InstallationChoice.YES,
-                install_setuptools=InstallationChoice.YES,
                 prompt=os.path.basename(ENV.PEX) if ENV.PEX else None,
             )
 
@@ -558,9 +582,12 @@ def ensure_venv(
                                     venvs=pluralize(collisions, "venv"),
                                     collisions="\n".join(
                                         "{index}.) {venv_path}".format(
-                                            index=index, venv_path=os.path.realpath(path)
+                                            index=index,
+                                            venv_path=os.path.realpath(path),
                                         )
-                                        for index, path in enumerate(collisions, start=1)
+                                        for index, path in enumerate(
+                                            collisions, start=1
+                                        )
                                     ),
                                 )
                             )
@@ -574,7 +601,10 @@ def ensure_venv(
                     # modification of the source loose PEX.
                     copy_mode = (
                         CopyMode.SYMLINK
-                        if (pex.layout != Layout.LOOSE and not pex_info.venv_site_packages_copies)
+                        if (
+                            pex.layout != Layout.LOOSE
+                            and not pex_info.venv_site_packages_copies
+                        )
                         else CopyMode.LINK
                     )
 
@@ -584,7 +614,6 @@ def ensure_venv(
                         / "bin"
                         / Path(virtualenv.interpreter.binary).name
                     )
-                    pex_root = Path(pex_info.pex_root)
                     shebang = installer.populate_venv_from_pex(
                         virtualenv,
                         pex,
@@ -615,27 +644,18 @@ def ensure_venv(
 
                     break
 
-    pex_root = Path(pex.path())
     venv_bin = Path(venv_dir) / "bin"
     if pex_info.lazy_requirements:
+        pex_root = Path(pex.path())
         pypi_args = []
         if pex_info.pypi_indices:
-            pypi_args += ["-i", pex_info.pypi_indices[0]]
+            pypi_args += ["--default-index", pex_info.pypi_indices[0]]
             for index in pex_info.pypi_indices[1:]:
-                pypi_args += ["--extra-index-url", index]
+                pypi_args += ["--index", index]
 
         subprocess.run(
             [
-                venv_bin / "pip",
-                "install",
-                f"uv=={pex_info.uv_version}",
-                *pypi_args
-            ],
-            check=True,
-        )
-        subprocess.run(
-            [
-                venv_bin / "uv",
+                "uv",
                 "pip",
                 "install",
                 "-p",
@@ -644,7 +664,7 @@ def ensure_venv(
                 pex_root / "requirements.txt",
                 "-c",
                 pex_root / "constraints.txt",
-                *pypi_args
+                *pypi_args,
             ],
             check=True,
         )
@@ -672,7 +692,10 @@ def bootstrap_pex(
                 from pex.third_party import VendorImporter
 
                 VendorImporter.install(
-                    uninstallable=False, prefix="__pex__", path_items=["."], root=location
+                    uninstallable=False,
+                    prefix="__pex__",
+                    path_items=["."],
+                    root=location,
                 )
 
             from pex import bootstrap
@@ -739,7 +762,11 @@ def _activate_venv_dir(
 
     venv = Virtualenv.enclosing(venv_python)
     if not venv:
-        die("Failed to load virtualenv for interpreter at {path}.".format(path=venv_python))
+        die(
+            "Failed to load virtualenv for interpreter at {path}.".format(
+                path=venv_python
+            )
+        )
 
     site_packages_dir = venv.site_packages_dir
     sys.path.insert(0, site_packages_dir)
